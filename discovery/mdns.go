@@ -3,7 +3,6 @@ package discovery
 import (
 	"context"
 	"log"
-	"net"
 	"strings"
 
 	"github.com/grandcat/zeroconf"
@@ -41,6 +40,7 @@ func (a *Advertiser) Stop() {
 }
 
 // Browser discovers filehub peers on the LAN.
+// onLost is reserved for future TTL-based expiry; grandcat/zeroconf does not emit removal events.
 type Browser struct {
 	cancel context.CancelFunc
 }
@@ -101,7 +101,6 @@ func entryToPeer(e *zeroconf.ServiceEntry) Peer {
 	} else if len(e.AddrIPv6) > 0 {
 		addr = e.AddrIPv6[0].String()
 	}
-	_ = net.IP{}
 	return Peer{
 		Hostname:    hostname,
 		DisplayName: displayName,
