@@ -34,6 +34,12 @@ func TestSincePull(t *testing.T) {
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/since" {
+			if got := r.URL.Query().Get("folder"); got != "folder1" {
+				t.Errorf("want folder=folder1, got %q", got)
+			}
+			if got := r.URL.Query().Get("t"); got != "2020-01-01T00:00:00Z" {
+				t.Errorf("want t=2020-01-01T00:00:00Z, got %q", got)
+			}
 			w.Header().Set("Content-Type", "application/json")
 			w.Write([]byte(`{"changes":[{"path":"subdir/file.txt","op":"write","mtime":1714299120,"size":42}]}`))
 			return

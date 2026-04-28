@@ -39,11 +39,11 @@ func (c *Client) PullFile(url, destPath string) error {
 	if err := os.MkdirAll(filepath.Dir(destPath), 0o755); err != nil {
 		return err
 	}
-	tmp := destPath + ".tmp"
-	f, err := os.Create(tmp)
+	f, err := os.CreateTemp(filepath.Dir(destPath), ".tmp-*")
 	if err != nil {
 		return err
 	}
+	tmp := f.Name()
 	if _, err := io.Copy(f, resp.Body); err != nil {
 		f.Close()
 		os.Remove(tmp)
