@@ -218,7 +218,7 @@ func (a *App) catchUp(p discovery.Peer) {
 	a.mu.RUnlock()
 
 	baseURL := fmt.Sprintf("http://%s:%d", p.Addr, p.Port)
-	for i, sub := range subs {
+	for _, sub := range subs {
 		if sub.PeerHostname != p.Hostname {
 			continue
 		}
@@ -232,8 +232,14 @@ func (a *App) catchUp(p discovery.Peer) {
 			continue
 		}
 		if len(pulled) > 0 {
+			now := time.Now()
 			a.mu.Lock()
-			a.cfg.Subscriptions[i].LastSyncedAt = time.Now()
+			for j, s := range a.cfg.Subscriptions {
+				if s.PeerHostname == sub.PeerHostname && s.FolderID == sub.FolderID {
+					a.cfg.Subscriptions[j].LastSyncedAt = now
+					break
+				}
+			}
 			a.mu.Unlock()
 			a.saveConfig()
 		}
@@ -282,6 +288,8 @@ func (a *App) startupScan() {
 func (a *App) saveConfig() {
 	a.mu.RLock()
 	cfg := a.cfg
+	cfg.Folders = append([]config.Folder(nil), a.cfg.Folders...)
+	cfg.Subscriptions = append([]config.Subscription(nil), a.cfg.Subscriptions...)
 	path := a.cfgPath
 	a.mu.RUnlock()
 	if err := config.Save(cfg, path); err != nil {
@@ -416,8 +424,9 @@ func (a *App) Unsubscribe(peerHostname, folderID string) error {
 func (a *App) UpdateDisplayName(name string) error {
 	a.mu.Lock()
 	a.cfg.DisplayName = name
+	cfg := a.cfg
 	a.mu.Unlock()
-	a.srv.UpdateConfig(a.cfg)
+	a.srv.UpdateConfig(cfg)
 	a.saveConfig()
 	return nil
 }
