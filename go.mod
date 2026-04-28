@@ -4,6 +4,7 @@ go 1.23.0
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0
+	github.com/fsnotify/fsnotify v1.9.0
 	github.com/wailsapp/wails/v2 v2.12.0
 )
 
