@@ -32,21 +32,33 @@ func TestWalk(t *testing.T) {
 func TestChanged(t *testing.T) {
 	dir := t.TempDir()
 	p := filepath.Join(dir, "f.txt")
-	os.WriteFile(p, []byte("v1"), 0o644)
+	os.WriteFile(p, []byte("hello"), 0o644)
 
 	m, _ := manifest.Walk("x", dir)
 	entry := m.Files["f.txt"]
 
+	// Unchanged: same mtime and size
 	info, _ := os.Stat(p)
 	if manifest.Changed(entry, info) {
 		t.Fatal("unchanged file should not be detected as changed")
 	}
 
-	time.Sleep(20 * time.Millisecond)
-	os.WriteFile(p, []byte("v2-longer"), 0o644)
+	// Changed via size: same mtime, different size
+	pastTime := info.ModTime()
+	os.WriteFile(p, []byte("hello world"), 0o644)
+	os.Chtimes(p, pastTime, pastTime) // restore original mtime
 	info2, _ := os.Stat(p)
 	if !manifest.Changed(entry, info2) {
-		t.Fatal("modified file should be detected as changed")
+		t.Fatal("size change should be detected even with same mtime")
+	}
+
+	// Changed via mtime: same size, different mtime
+	os.WriteFile(p, []byte("hello"), 0o644) // restore original size
+	futureTime := pastTime.Add(2 * time.Second)
+	os.Chtimes(p, futureTime, futureTime)
+	info3, _ := os.Stat(p)
+	if !manifest.Changed(entry, info3) {
+		t.Fatal("mtime change should be detected even with same size")
 	}
 }
 

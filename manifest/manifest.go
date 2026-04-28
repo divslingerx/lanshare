@@ -57,13 +57,16 @@ func Walk(folderID, root string) (*Manifest, error) {
 		}
 		info, err := d.Info()
 		if err != nil {
-			return nil
+			return err
 		}
 		hash, err := hashFile(path)
 		if err != nil {
-			return nil
+			return err
 		}
-		rel, _ := filepath.Rel(root, path)
+		rel, err := filepath.Rel(root, path)
+		if err != nil {
+			return err
+		}
 		m.Files[rel] = FileEntry{
 			MTime:  info.ModTime().Unix(),
 			Size:   info.Size(),
