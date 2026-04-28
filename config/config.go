@@ -32,11 +32,18 @@ type Subscription struct {
 	LastSyncedAt time.Time `json:"last_synced_at"`
 }
 
+type ChangeOp string
+
+const (
+	OpWrite  ChangeOp = "write"
+	OpDelete ChangeOp = "delete"
+)
+
 type Change struct {
-	Path  string `json:"path"`
-	Op    string `json:"op"` // "write" | "delete"
-	MTime int64  `json:"mtime"`
-	Size  int64  `json:"size"`
+	Path  string   `json:"path"`
+	Op    ChangeOp `json:"op"`
+	MTime int64    `json:"mtime"`
+	Size  int64    `json:"size"`
 }
 
 type ChangeEvent struct {
@@ -91,7 +98,21 @@ func Save(cfg Config, path string) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, data, 0o644)
+	tmp, err := os.CreateTemp(filepath.Dir(path), ".config-*.json")
+	if err != nil {
+		return err
+	}
+	tmpName := tmp.Name()
+	if _, err := tmp.Write(data); err != nil {
+		tmp.Close()
+		os.Remove(tmpName)
+		return err
+	}
+	if err := tmp.Close(); err != nil {
+		os.Remove(tmpName)
+		return err
+	}
+	return os.Rename(tmpName, path)
 }
 
 func ConfigPath() (string, error) {

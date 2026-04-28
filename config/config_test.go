@@ -11,6 +11,10 @@ func TestFolderID(t *testing.T) {
 	if len(id) != 8 {
 		t.Fatalf("want 8 chars, got %d: %q", len(id), id)
 	}
+	const want = "618f0fbc"
+	if id != want {
+		t.Fatalf("want %q, got %q", want, id)
+	}
 	if config.FolderID("/home/user/projects") != id {
 		t.Fatal("not deterministic")
 	}
