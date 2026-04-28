@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/cespare/xxhash/v2"
 )
@@ -19,6 +20,7 @@ type FileEntry struct {
 }
 
 type Manifest struct {
+	mu       sync.RWMutex
 	FolderID string               `json:"folder_id"`
 	Files    map[string]FileEntry `json:"files"`
 }
@@ -77,8 +79,17 @@ func Walk(folderID, root string) (*Manifest, error) {
 	return m, err
 }
 
+// Delete removes one file's entry from the manifest under the write lock.
+func (m *Manifest) Delete(relPath string) {
+	m.mu.Lock()
+	delete(m.Files, relPath)
+	m.mu.Unlock()
+}
+
 // Update refreshes one file's entry; deletes it if the file is gone.
 func (m *Manifest) Update(relPath, absPath string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	info, err := os.Stat(absPath)
 	if errors.Is(err, os.ErrNotExist) {
 		delete(m.Files, relPath)
@@ -106,7 +117,9 @@ func (m *Manifest) Save(path string) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
+	m.mu.RLock()
 	data, err := json.MarshalIndent(m, "", "  ")
+	m.mu.RUnlock()
 	if err != nil {
 		return err
 	}

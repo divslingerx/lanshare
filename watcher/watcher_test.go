@@ -3,6 +3,7 @@ package watcher_test
 import (
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -15,12 +16,18 @@ func TestWatcherDetectsWrite(t *testing.T) {
 	dir := t.TempDir()
 	m := manifest.New("test1")
 
+	var mu sync.Mutex
 	var gotChanges []config.Change
 	done := make(chan struct{})
+	once := sync.Once{}
 
 	w, err := watcher.New(func(folderID string, changes []config.Change) {
-		gotChanges = changes
-		close(done)
+		once.Do(func() {
+			mu.Lock()
+			gotChanges = changes
+			mu.Unlock()
+			close(done)
+		})
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -40,6 +47,8 @@ func TestWatcherDetectsWrite(t *testing.T) {
 		t.Fatal("timeout: no change event received")
 	}
 
+	mu.Lock()
+	defer mu.Unlock()
 	if len(gotChanges) == 0 {
 		t.Fatal("expected at least one change")
 	}

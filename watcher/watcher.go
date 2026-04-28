@@ -81,7 +81,7 @@ func (w *Watcher) loop() {
 }
 
 func (w *Watcher) handleEvent(event fsnotify.Event) {
-	if event.Op&fsnotify.Chmod != 0 && event.Op == fsnotify.Chmod {
+	if event.Op == fsnotify.Chmod {
 		return // ignore permission-only changes
 	}
 	w.mu.Lock()
@@ -137,9 +137,9 @@ func (w *Watcher) fire() {
 		var changes []config.Change
 		for rel, op := range files {
 			abs := filepath.Join(root, rel)
-			if op&fsnotify.Remove != 0 {
+			if op&(fsnotify.Remove|fsnotify.Rename) != 0 {
 				if m != nil {
-					delete(m.Files, rel)
+					m.Delete(rel)
 				}
 				changes = append(changes, config.Change{
 					Path: filepath.ToSlash(rel),
