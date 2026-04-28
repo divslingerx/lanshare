@@ -22,18 +22,23 @@ func (h *Hub) Subscribe() chan []byte {
 
 func (h *Hub) Unsubscribe(ch chan []byte) {
 	h.mu.Lock()
+	_, exists := h.subscribers[ch]
 	delete(h.subscribers, ch)
 	h.mu.Unlock()
-	close(ch)
+	if exists {
+		close(ch)
+	}
 }
 
 func (h *Hub) Broadcast(data []byte) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	for ch := range h.subscribers {
+		cp := make([]byte, len(data))
+		copy(cp, data)
 		select {
-		case ch <- data:
-		default: // drop if subscriber buffer is full
+		case ch <- cp:
+		default:
 		}
 	}
 }
