@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import Sidebar from './components/Sidebar';
 import FolderList from './components/FolderList';
@@ -9,10 +9,16 @@ import { useAppState } from './hooks/useAppState';
 
 export default function App() {
   const [view, setView] = useState('folders');
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   const state = useAppState();
 
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden' }}>
       <Sidebar
         activeView={view}
         onNavChange={setView}
@@ -21,7 +27,7 @@ export default function App() {
         folderCount={state.folders.length}
       />
 
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'transparent' }}>
+      <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'transparent' }}>
         {view === 'folders' && (
           <FolderList
             folders={state.folders}
@@ -39,7 +45,12 @@ export default function App() {
           />
         )}
         {view === 'settings' && (
-          <SettingsView config={state.config} onUpdate={state.updateConfig} />
+          <SettingsView
+            config={state.config}
+            onUpdate={state.updateConfig}
+            theme={theme}
+            onThemeChange={setTheme}
+          />
         )}
       </main>
 

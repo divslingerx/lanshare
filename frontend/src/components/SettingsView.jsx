@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function SettingsView({ config, onUpdate }) {
+export default function SettingsView({ config, onUpdate, theme, onThemeChange }) {
   const [displayName, setDisplayName] = useState('');
   const [port, setPort] = useState('');
   const [baseStorage, setBaseStorage] = useState('');
@@ -46,7 +46,35 @@ export default function SettingsView({ config, onUpdate }) {
 
         <button className="btn btn-primary" onClick={save}>Save Settings</button>
 
-        <div style={{ marginTop: 32, padding: 16, background: 'var(--surface-2)', border: '1px solid var(--border-2)', borderRadius: 'var(--r-sm)' }}>
+        <div style={{ marginTop: 28, marginBottom: 20 }}>
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 12 }}>Appearance</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {['light', 'dark'].map(t => (
+              <button
+                key={t}
+                onClick={() => onThemeChange(t)}
+                style={{
+                  flex: 1,
+                  padding: '10px 0',
+                  borderRadius: 'var(--r-sm)',
+                  border: `1px solid ${theme === t ? 'var(--accent)' : 'var(--border)'}`,
+                  background: theme === t ? 'var(--accent-bg)' : 'var(--surface-2)',
+                  color: theme === t ? 'var(--accent)' : 'var(--text-2)',
+                  fontFamily: 'DM Sans, sans-serif',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.12s',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {t === 'dark' ? '🌙 Dark' : '☀️ Light'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ marginTop: 16, padding: 16, background: 'var(--surface-2)', border: '1px solid var(--border-2)', borderRadius: 'var(--r-sm)' }}>
           <div className="sec-label" style={{ marginBottom: 8 }}>About</div>
           <div style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.7 }}>
             filehub v0.1 — LAN file sharing<br />
