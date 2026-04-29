@@ -30,7 +30,11 @@ export function useAppState() {
     const offOffline = eventsOn('peer:offline', h => setPeers(ps => ps.filter(p => p.Hostname !== h)));
     const offChanged = eventsOn('folder:changed', () => GetFolders().then(setFolders));
     const offProgress = eventsOn('transfer:progress', t => {
-      setTransfers(ts => ts.map(x => x.id === t.id ? { ...x, ...t } : x));
+      setTransfers(ts => {
+        const exists = ts.some(x => x.id === t.id);
+        if (exists) return ts.map(x => x.id === t.id ? { ...x, ...t } : x);
+        return [...ts, { ...t }];
+      });
     });
     const offDone = eventsOn('transfer:complete', t => {
       setTransfers(ts => [{ ...t, done: true }, ...ts.filter(x => x.id !== t.id)].slice(0, 20));

@@ -45,8 +45,8 @@ export default function ActivityPanel({ transfers }) {
         {completed.length > 0 && (
           <>
             <div className="sec-label" style={{ padding: '6px 2px 0' }}>Completed</div>
-            {completed.slice(0, 10).map((t, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 11px', background: 'var(--surface-2)', border: '1px solid var(--border-2)', borderRadius: 'var(--r-sm)' }}>
+            {completed.slice(0, 10).map(t => (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 11px', background: 'var(--surface-2)', border: '1px solid var(--border-2)', borderRadius: 'var(--r-sm)' }}>
                 <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--watch-bg)', color: 'var(--watch)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
