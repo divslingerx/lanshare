@@ -5,8 +5,8 @@ import AddFolderModal from './AddFolderModal';
 export default function FolderList({ folders, onAddFolder, onRemoveFolder, onSetMode }) {
   const [showModal, setShowModal] = useState(false);
 
-  const watching = folders.filter(f => f.Mode === 'watch').length;
-  const shared   = folders.filter(f => f.Mode === 'shared').length;
+  const watching = folders.filter(f => f.mode === 'watch').length;
+  const shared   = folders.filter(f => f.mode === 'shared').length;
 
   return (
     <>
@@ -37,7 +37,7 @@ export default function FolderList({ folders, onAddFolder, onRemoveFolder, onSet
           </div>
         )}
         {folders.map(f => (
-          <FolderCard key={f.ID} folder={f} onRemove={onRemoveFolder} onSetMode={onSetMode} />
+          <FolderCard key={f.id} folder={f} onRemove={onRemoveFolder} onSetMode={onSetMode} />
         ))}
       </div>
 

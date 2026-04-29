@@ -6,16 +6,16 @@ export default function SettingsView({ config, onUpdate, theme, onThemeChange })
   const [baseStorage, setBaseStorage] = useState('');
 
   useEffect(() => {
-    setDisplayName(config.DisplayName || '');
-    setPort(String(config.Port || 47990));
-    setBaseStorage(config.BaseStorage || '');
+    setDisplayName(config.display_name || '');
+    setPort(String(config.port || 47990));
+    setBaseStorage(config.base_storage || '');
   }, [config]);
 
   const save = () => {
     const p = parseInt(port, 10);
     onUpdate({
       displayName,
-      port: isNaN(p) ? config.Port : p,
+      port: isNaN(p) ? config.port : p,
       baseStorage,
     });
   };
@@ -36,11 +36,11 @@ export default function SettingsView({ config, onUpdate, theme, onThemeChange })
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <div style={{ padding: '18px 24px', borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}>
         <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 17, fontWeight: 700, letterSpacing: '-0.4px' }}>Settings</div>
-        <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10.5, color: 'var(--text-3)', marginTop: 2 }}>Device ID: {config.DeviceID}</div>
+        <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10.5, color: 'var(--text-3)', marginTop: 2 }}>Device ID: {config.device_id}</div>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px', maxWidth: 480 }}>
-        {field('Display Name', displayName, setDisplayName, config.DeviceID)}
+        {field('Display Name', displayName, setDisplayName, config.device_id)}
         {field('Port', port, setPort, '47990')}
         {field('Base Storage Path', baseStorage, setBaseStorage, '~/filehub')}
 

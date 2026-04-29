@@ -1,5 +1,9 @@
+function basename(p) {
+  return p.replace(/\\/g, '/').split('/').filter(Boolean).pop() || p;
+}
+
 export default function FolderCard({ folder, onRemove, onSetMode }) {
-  const isShared = folder.Mode === 'shared';
+  const isShared = folder.mode === 'shared';
   const modeColor = isShared ? 'var(--shared)' : 'var(--watch)';
   const modeBg    = isShared ? 'var(--shared-bg)' : 'var(--watch-bg)';
 
@@ -20,11 +24,11 @@ export default function FolderCard({ folder, onRemove, onSetMode }) {
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={folder.Path}>
-            {folder.Path}
+          <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {basename(folder.path)}
           </div>
-          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10.5, color: 'var(--text-3)', marginTop: 3 }}>
-            {folder.Mode}
+          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10.5, color: 'var(--text-3)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={folder.path}>
+            {folder.path}
           </div>
         </div>
       </div>
@@ -34,12 +38,12 @@ export default function FolderCard({ folder, onRemove, onSetMode }) {
           {['watch', 'shared'].map(m => (
             <button
               key={m}
-              onClick={() => onSetMode(folder.ID, m)}
+              onClick={() => onSetMode(folder.id, m)}
               style={{
                 padding: '4px 11px', borderRadius: 18, fontSize: 11.5, fontWeight: 500,
-                cursor: 'pointer', border: folder.Mode === m ? `1px solid ${m === 'watch' ? 'rgba(50,208,122,0.18)' : 'rgba(245,166,35,0.18)'}` : 'none',
-                background: folder.Mode === m ? (m === 'watch' ? 'var(--watch-bg)' : 'var(--shared-bg)') : 'transparent',
-                color: folder.Mode === m ? (m === 'watch' ? 'var(--watch)' : 'var(--shared)') : 'var(--text-3)',
+                cursor: 'pointer', border: folder.mode === m ? `1px solid ${m === 'watch' ? 'rgba(50,208,122,0.18)' : 'rgba(245,166,35,0.18)'}` : 'none',
+                background: folder.mode === m ? (m === 'watch' ? 'var(--watch-bg)' : 'var(--shared-bg)') : 'transparent',
+                color: folder.mode === m ? (m === 'watch' ? 'var(--watch)' : 'var(--shared)') : 'var(--text-3)',
                 fontFamily: 'DM Sans, sans-serif', transition: 'all 0.18s', whiteSpace: 'nowrap',
               }}
             >
@@ -49,7 +53,7 @@ export default function FolderCard({ folder, onRemove, onSetMode }) {
         </div>
 
         <button
-          onClick={() => onRemove(folder.ID)}
+          onClick={() => onRemove(folder.id)}
           title="Remove folder"
           style={{ width: 30, height: 30, borderRadius: 'var(--r-sm)', background: 'transparent', border: 'none', color: 'var(--text-3)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.12s' }}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,88,88,0.12)'; e.currentTarget.style.color = 'var(--danger)'; }}

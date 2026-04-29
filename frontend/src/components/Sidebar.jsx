@@ -75,8 +75,8 @@ export default function Sidebar({ activeView, onNavChange, peers, config, folder
       <div style={{ padding: '12px 18px', borderTop: '1px solid var(--border-2)', display: 'flex', alignItems: 'center', gap: 9 }}>
         <div style={pulseStyle('var(--watch)')} />
         <div>
-          <div style={{ fontSize: 11.5, fontWeight: 600 }}>{config.DisplayName || config.DeviceID}</div>
-          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: 'var(--text-3)' }}>:{config.Port}</div>
+          <div style={{ fontSize: 11.5, fontWeight: 600 }}>{config.display_name || config.device_id}</div>
+          <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: 'var(--text-3)' }}>:{config.port}</div>
         </div>
       </div>
     </aside>

@@ -1,6 +1,6 @@
 export default function NetworkView({ peers, subscriptions, onSubscribe, onUnsubscribe }) {
   const isSubscribed = (peerHostname, folderID) =>
-    subscriptions.some(s => s.PeerHostname === peerHostname && s.FolderID === folderID);
+    subscriptions.some(s => s.peer_hostname === peerHostname && s.folder_id === folderID);
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -24,22 +24,22 @@ export default function NetworkView({ peers, subscriptions, onSubscribe, onUnsub
                 <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: 'var(--text-3)' }}>{peer.Addr}:{peer.Port}</div>
               </div>
             </div>
-            {(peer.Folders || []).filter(f => f.Mode === 'watch').map(f => (
-              <div key={f.ID} style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--border-2)' }}>
+            {(peer.Folders || []).filter(f => f.mode === 'watch').map(f => (
+              <div key={f.id} style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--border-2)' }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--watch)" strokeWidth="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-                <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.Path}</span>
+                <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={f.path}>{f.path}</span>
                 <button
-                  className={isSubscribed(peer.Hostname, f.ID) ? 'btn btn-ghost' : 'btn btn-primary'}
+                  className={isSubscribed(peer.Hostname, f.id) ? 'btn btn-ghost' : 'btn btn-primary'}
                   style={{ fontSize: 11, padding: '4px 10px' }}
-                  onClick={() => isSubscribed(peer.Hostname, f.ID)
-                    ? onUnsubscribe(peer.Hostname, f.ID)
-                    : onSubscribe(peer.Hostname, f.ID, '')}
+                  onClick={() => isSubscribed(peer.Hostname, f.id)
+                    ? onUnsubscribe(peer.Hostname, f.id)
+                    : onSubscribe(peer.Hostname, f.id, '')}
                 >
-                  {isSubscribed(peer.Hostname, f.ID) ? 'Unsubscribe' : 'Subscribe'}
+                  {isSubscribed(peer.Hostname, f.id) ? 'Unsubscribe' : 'Subscribe'}
                 </button>
               </div>
             ))}
-            {(peer.Folders || []).filter(f => f.Mode === 'watch').length === 0 && (
+            {(peer.Folders || []).filter(f => f.mode === 'watch').length === 0 && (
               <div style={{ padding: '10px 16px', fontSize: 12, color: 'var(--text-3)' }}>No watch folders on this device.</div>
             )}
           </div>
