@@ -34,6 +34,7 @@ type App struct {
 	client     *transfer.Client
 	peers      map[string]discovery.Peer
 	manifests  map[string]*manifest.Manifest
+	sseCancel  map[string]context.CancelFunc // key: peerHostname+":"+folderID
 	mu         sync.RWMutex
 }
 
@@ -41,6 +42,7 @@ func NewApp() *App {
 	return &App{
 		peers:     make(map[string]discovery.Peer),
 		manifests: make(map[string]*manifest.Manifest),
+		sseCancel: make(map[string]context.CancelFunc),
 		client:    transfer.NewClient(),
 	}
 }
@@ -80,7 +82,22 @@ func (a *App) startup(ctx context.Context) {
 			m = manifest.New(f.ID)
 		}
 		a.manifests[f.ID] = m
-		a.wtch.Watch(f.ID, f.Path, m)
+	}
+
+	// Walk all watch folders to pick up offline changes before starting the live watcher.
+	a.startupScan()
+
+	// Now start watching using the fresh manifests produced by startupScan.
+	for _, f := range cfg.Folders {
+		if f.Mode != config.ModeWatch {
+			continue
+		}
+		a.mu.RLock()
+		m := a.manifests[f.ID]
+		a.mu.RUnlock()
+		if m != nil {
+			a.wtch.Watch(f.ID, f.Path, m)
+		}
 	}
 
 	if err := a.srv.Start(cfg.Port); err != nil {
@@ -113,7 +130,6 @@ func (a *App) startup(ctx context.Context) {
 		},
 	)
 
-	go a.startupScan()
 }
 
 func (a *App) shutdown(ctx context.Context) {
@@ -168,16 +184,39 @@ func (a *App) connectSSE(p discovery.Peer) {
 		if sub.PeerHostname != p.Hostname {
 			continue
 		}
-		go func(sub config.Subscription) {
-			resp, err := http.Get(baseURL + "/events/" + sub.FolderID)
+
+		key := sub.PeerHostname + ":" + sub.FolderID
+		a.mu.Lock()
+		if cancel, ok := a.sseCancel[key]; ok {
+			cancel()
+		}
+		ctx, cancel := context.WithCancel(a.ctx)
+		a.sseCancel[key] = cancel
+		a.mu.Unlock()
+
+		go func(sub config.Subscription, ctx context.Context, key string) {
+			defer func() {
+				a.mu.Lock()
+				delete(a.sseCancel, key)
+				a.mu.Unlock()
+			}()
+
+			req, err := http.NewRequestWithContext(ctx, "GET", baseURL+"/events/"+sub.FolderID, nil)
+			if err != nil {
+				return
+			}
+			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				return
 			}
 			defer resp.Body.Close()
 
+			a.mu.RLock()
 			dest := sub.LocalDest
+			baseStorage := a.cfg.BaseStorage
+			a.mu.RUnlock()
 			if dest == "" {
-				dest = filepath.Join(a.cfg.BaseStorage, sub.PeerHostname, filepath.Base(sub.RemoteFolder))
+				dest = filepath.Join(baseStorage, sub.PeerHostname, filepath.Base(sub.RemoteFolder))
 			}
 
 			scanner := bufio.NewScanner(resp.Body)
@@ -207,7 +246,7 @@ func (a *App) connectSSE(p discovery.Peer) {
 				a.mu.Unlock()
 				a.saveConfig()
 			}
-		}(sub)
+		}(sub, ctx, key)
 	}
 }
 
