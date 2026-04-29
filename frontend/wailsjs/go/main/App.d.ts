@@ -21,7 +21,7 @@ export function RemoveFolder(arg1:string):Promise<void>;
 
 export function SetFolderMode(arg1:string,arg2:string):Promise<void>;
 
-export function Subscribe(arg1:string,arg2:string,arg3:string):Promise<void>;
+export function Subscribe(arg1:string,arg2:string,arg3:string,arg4:string):Promise<void>;
 
 export function Unsubscribe(arg1:string,arg2:string):Promise<void>;
 

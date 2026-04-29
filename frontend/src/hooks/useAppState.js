@@ -71,8 +71,8 @@ export function useAppState() {
     setFolders(await GetFolders());
   }, []);
 
-  const subscribe = useCallback(async (peerHostname, folderID, localDest) => {
-    await Subscribe(peerHostname, folderID, localDest || '');
+  const subscribe = useCallback(async (peerHostname, folderID, remoteFolder, localDest) => {
+    await Subscribe(peerHostname, folderID, remoteFolder || '', localDest || '');
     setSubscriptions(await GetSubscriptions());
   }, []);
 

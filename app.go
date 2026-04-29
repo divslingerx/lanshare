@@ -427,7 +427,7 @@ func (a *App) GetSubscriptions() []config.Subscription {
 	return a.cfg.Subscriptions
 }
 
-func (a *App) Subscribe(peerHostname, folderID, localDest string) error {
+func (a *App) Subscribe(peerHostname, folderID, remoteFolder, localDest string) error {
 	a.mu.Lock()
 	for _, s := range a.cfg.Subscriptions {
 		if s.PeerHostname == peerHostname && s.FolderID == folderID {
@@ -438,11 +438,19 @@ func (a *App) Subscribe(peerHostname, folderID, localDest string) error {
 	a.cfg.Subscriptions = append(a.cfg.Subscriptions, config.Subscription{
 		PeerHostname: peerHostname,
 		FolderID:     folderID,
+		RemoteFolder: remoteFolder,
 		LocalDest:    localDest,
 		LastSyncedAt: 0,
 	})
+	p, online := a.peers[peerHostname]
 	a.mu.Unlock()
 	a.saveConfig()
+
+	// If the peer is already online, start syncing immediately without waiting for re-discovery.
+	if online {
+		go a.catchUp(p)
+		go a.connectSSE(p)
+	}
 	return nil
 }
 

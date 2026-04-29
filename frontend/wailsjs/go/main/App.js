@@ -38,8 +38,8 @@ export function SetFolderMode(arg1, arg2) {
   return window['go']['main']['App']['SetFolderMode'](arg1, arg2);
 }
 
-export function Subscribe(arg1, arg2, arg3) {
-  return window['go']['main']['App']['Subscribe'](arg1, arg2, arg3);
+export function Subscribe(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['Subscribe'](arg1, arg2, arg3, arg4);
 }
 
 export function Unsubscribe(arg1, arg2) {

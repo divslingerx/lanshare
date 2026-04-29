@@ -33,7 +33,7 @@ export default function NetworkView({ peers, subscriptions, onSubscribe, onUnsub
                   style={{ fontSize: 11, padding: '4px 10px' }}
                   onClick={() => isSubscribed(peer.Hostname, f.id)
                     ? onUnsubscribe(peer.Hostname, f.id)
-                    : onSubscribe(peer.Hostname, f.id, '')}
+                    : onSubscribe(peer.Hostname, f.id, f.path, '')}
                 >
                   {isSubscribed(peer.Hostname, f.id) ? 'Unsubscribe' : 'Subscribe'}
                 </button>
