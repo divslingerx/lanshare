@@ -315,6 +315,18 @@ func (a *App) startupScan() {
 		a.mu.Unlock()
 		m.Save(manifest.ManifestPath(configDir, f.ID))
 
+		// Populate the server's file state so /since returns existing files immediately.
+		state := make(map[string]config.Change, len(m.Files))
+		for rel, entry := range m.Files {
+			state[rel] = config.Change{
+				Path:  rel,
+				Op:    config.OpWrite,
+				MTime: entry.MTime,
+				Size:  entry.Size,
+			}
+		}
+		a.srv.SetFileState(f.ID, state)
+
 		if offlineChanges > 0 {
 			wailsRuntime.EventsEmit(a.ctx, "folder:offlineChanges", map[string]any{
 				"folderID": f.ID,
