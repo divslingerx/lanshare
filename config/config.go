@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/cespare/xxhash/v2"
 )
@@ -25,11 +24,11 @@ type Folder struct {
 }
 
 type Subscription struct {
-	PeerHostname string    `json:"peer_hostname"`
-	RemoteFolder string    `json:"remote_folder"` // display path on the remote peer
-	FolderID     string    `json:"folder_id"`     // remote folder's ID (for HTTP routes)
-	LocalDest    string    `json:"local_dest"`    // "" = use default ~/filehub/{peer}/{folder}/
-	LastSyncedAt time.Time `json:"last_synced_at"`
+	PeerHostname string `json:"peer_hostname"`
+	RemoteFolder string `json:"remote_folder"` // display path on the remote peer
+	FolderID     string `json:"folder_id"`     // remote folder's ID (for HTTP routes)
+	LocalDest    string `json:"local_dest"`    // "" = use default ~/filehub/{peer}/{folder}/
+	LastSyncedAt int64  `json:"last_synced_at"` // Unix timestamp; 0 = never synced
 }
 
 type ChangeOp string

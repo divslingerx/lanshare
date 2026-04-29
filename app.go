@@ -240,7 +240,7 @@ func (a *App) connectSSE(p discovery.Peer) {
 				a.mu.Lock()
 				for i, s := range a.cfg.Subscriptions {
 					if s.PeerHostname == sub.PeerHostname && s.FolderID == sub.FolderID {
-						a.cfg.Subscriptions[i].LastSyncedAt = time.Now()
+						a.cfg.Subscriptions[i].LastSyncedAt = time.Now().Unix()
 					}
 				}
 				a.mu.Unlock()
@@ -265,13 +265,13 @@ func (a *App) catchUp(p discovery.Peer) {
 		if dest == "" {
 			dest = filepath.Join(a.cfg.BaseStorage, sub.PeerHostname, filepath.Base(sub.RemoteFolder))
 		}
-		pulled, err := a.client.SincePull(baseURL, sub.FolderID, sub.LastSyncedAt.Format(time.RFC3339), dest)
+		pulled, err := a.client.SincePull(baseURL, sub.FolderID, time.Unix(sub.LastSyncedAt, 0).UTC().Format(time.RFC3339), dest)
 		if err != nil {
 			log.Printf("catch-up %s/%s: %v", p.Hostname, sub.FolderID, err)
 			continue
 		}
 		if len(pulled) > 0 {
-			now := time.Now()
+			now := time.Now().Unix()
 			a.mu.Lock()
 			for j, s := range a.cfg.Subscriptions {
 				if s.PeerHostname == sub.PeerHostname && s.FolderID == sub.FolderID {
@@ -439,7 +439,7 @@ func (a *App) Subscribe(peerHostname, folderID, localDest string) error {
 		PeerHostname: peerHostname,
 		FolderID:     folderID,
 		LocalDest:    localDest,
-		LastSyncedAt: time.Time{},
+		LastSyncedAt: 0,
 	})
 	a.mu.Unlock()
 	a.saveConfig()
