@@ -1,28 +1,49 @@
-import {useState} from 'react';
-import logo from './assets/images/logo-universal.png';
+import { useState } from 'react';
 import './App.css';
-import {Greet} from "../wailsjs/go/main/App";
+import Sidebar from './components/Sidebar';
+import FolderList from './components/FolderList';
+import ActivityPanel from './components/ActivityPanel';
+import NetworkView from './components/NetworkView';
+import SettingsView from './components/SettingsView';
+import { useAppState } from './hooks/useAppState';
 
-function App() {
-    const [resultText, setResultText] = useState("Please enter your name below 👇");
-    const [name, setName] = useState('');
-    const updateName = (e) => setName(e.target.value);
-    const updateResultText = (result) => setResultText(result);
+export default function App() {
+  const [view, setView] = useState('folders');
+  const state = useAppState();
 
-    function greet() {
-        Greet(name).then(updateResultText);
-    }
+  return (
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      <Sidebar
+        activeView={view}
+        onNavChange={setView}
+        peers={state.peers}
+        config={state.config}
+        folderCount={state.folders.length}
+      />
 
-    return (
-        <div id="App">
-            <img src={logo} id="logo" alt="logo"/>
-            <div id="result" className="result">{resultText}</div>
-            <div id="input" className="input-box">
-                <input id="name" className="input" onChange={updateName} autoComplete="off" name="input" type="text"/>
-                <button className="btn" onClick={greet}>Greet</button>
-            </div>
-        </div>
-    )
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'transparent' }}>
+        {view === 'folders' && (
+          <FolderList
+            folders={state.folders}
+            onAddFolder={state.addFolder}
+            onRemoveFolder={state.removeFolder}
+            onSetMode={state.setFolderMode}
+          />
+        )}
+        {view === 'network' && (
+          <NetworkView
+            peers={state.peers}
+            subscriptions={state.subscriptions}
+            onSubscribe={state.subscribe}
+            onUnsubscribe={state.unsubscribe}
+          />
+        )}
+        {view === 'settings' && (
+          <SettingsView config={state.config} onUpdate={state.updateConfig} />
+        )}
+      </main>
+
+      <ActivityPanel transfers={state.transfers} />
+    </div>
+  );
 }
-
-export default App
