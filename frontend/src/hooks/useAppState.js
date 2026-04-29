@@ -90,9 +90,16 @@ export function useAppState() {
 
   const openFolderDialog = useCallback(() => OpenFolderDialog(), []);
 
+  const refreshPeers = useCallback(async () => {
+    const ps = await GetPeers();
+    const enriched = await Promise.all(ps.map(enrichPeer));
+    setPeers(enriched);
+  }, []);
+
   return {
     folders, peers, subscriptions, config, transfers,
     addFolder, removeFolder, setFolderMode,
     subscribe, unsubscribe, updateConfig, openFolderDialog,
+    refreshPeers,
   };
 }

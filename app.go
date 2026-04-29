@@ -382,7 +382,23 @@ func (a *App) AddFolder(path string, mode string) error {
 
 	a.srv.AddFolder(f)
 	if f.Mode == config.ModeWatch {
-		m := manifest.New(id)
+		m, err := manifest.Walk(id, absPath)
+		if err != nil || m == nil {
+			m = manifest.New(id)
+		} else {
+			state := make(map[string]config.Change, len(m.Files))
+			for rel, entry := range m.Files {
+				state[rel] = config.Change{
+					Path:  rel,
+					Op:    config.OpWrite,
+					MTime: entry.MTime,
+					Size:  entry.Size,
+				}
+			}
+			a.srv.SetFileState(id, state)
+			configDir, _ := os.UserConfigDir()
+			m.Save(manifest.ManifestPath(configDir, id))
+		}
 		a.mu.Lock()
 		a.manifests[id] = m
 		a.mu.Unlock()

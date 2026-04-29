@@ -42,6 +42,7 @@ export default function App() {
             subscriptions={state.subscriptions}
             onSubscribe={state.subscribe}
             onUnsubscribe={state.unsubscribe}
+            onRefresh={state.refreshPeers}
           />
         )}
         {view === 'settings' && (
