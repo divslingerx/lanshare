@@ -86,7 +86,11 @@ func Load(path string) (Config, error) {
 		return Config{}, err
 	}
 	var cfg Config
-	return cfg, json.Unmarshal(data, &cfg)
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		// Config is unreadable (e.g. schema migration). Start fresh rather than crashing.
+		return Default(), nil
+	}
+	return cfg, nil
 }
 
 func Save(cfg Config, path string) error {
