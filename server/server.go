@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"time"
@@ -83,6 +84,7 @@ func (s *Server) Stop() {
 }
 
 func (s *Server) AddFolder(f config.Folder) {
+	f.Path = filepath.Clean(f.Path)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.folders[f.ID] = f
@@ -94,6 +96,9 @@ func (s *Server) AddFolder(f config.Folder) {
 func (s *Server) RemoveFolder(folderID string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if hub, ok := s.hubs[folderID]; ok {
+		hub.Close()
+	}
 	delete(s.folders, folderID)
 	delete(s.hubs, folderID)
 	delete(s.fileState, folderID)

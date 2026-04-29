@@ -30,6 +30,15 @@ func (h *Hub) Unsubscribe(ch chan []byte) {
 	}
 }
 
+func (h *Hub) Close() {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for ch := range h.subscribers {
+		close(ch)
+		delete(h.subscribers, ch)
+	}
+}
+
 func (h *Hub) Broadcast(data []byte) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
