@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   GetFolders, AddFolder, RemoveFolder, SetFolderMode,
-  GetPeers, GetSubscriptions, Subscribe, Unsubscribe,
+  GetPeers, GetPeerFolders, GetSubscriptions, Subscribe, Unsubscribe,
   GetConfig, UpdateDisplayName, UpdatePort, UpdateBaseStorage,
   OpenFolderDialog,
 } from '../../wailsjs/go/main/App';
@@ -13,6 +13,15 @@ function eventsOn(eventName, callback) {
   return () => EventsOff(eventName);
 }
 
+async function enrichPeer(p) {
+  try {
+    const folders = await GetPeerFolders(p.Hostname);
+    return { ...p, Folders: folders || [] };
+  } catch {
+    return { ...p, Folders: [] };
+  }
+}
+
 export function useAppState() {
   const [folders, setFolders] = useState([]);
   const [peers, setPeers] = useState([]);
@@ -22,11 +31,15 @@ export function useAppState() {
 
   useEffect(() => {
     GetFolders().then(setFolders);
-    GetPeers().then(setPeers);
+    GetPeers().then(ps => Promise.all(ps.map(enrichPeer)).then(setPeers));
     GetSubscriptions().then(setSubscriptions);
     GetConfig().then(setConfig);
 
-    const offOnline  = eventsOn('peer:online',  p => setPeers(ps => [...ps.filter(x => x.Hostname !== p.Hostname), p]));
+    const offOnline  = eventsOn('peer:online', p => {
+      enrichPeer(p).then(enriched =>
+        setPeers(ps => [...ps.filter(x => x.Hostname !== enriched.Hostname), enriched])
+      );
+    });
     const offOffline = eventsOn('peer:offline', h => setPeers(ps => ps.filter(p => p.Hostname !== h)));
     const offChanged = eventsOn('folder:changed', () => GetFolders().then(setFolders));
     const offProgress = eventsOn('transfer:progress', t => {

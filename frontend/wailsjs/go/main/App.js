@@ -14,6 +14,10 @@ export function GetFolders() {
   return window['go']['main']['App']['GetFolders']();
 }
 
+export function GetPeerFolders(arg1) {
+  return window['go']['main']['App']['GetPeerFolders'](arg1);
+}
+
 export function GetPeers() {
   return window['go']['main']['App']['GetPeers']();
 }

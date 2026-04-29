@@ -9,6 +9,8 @@ export function GetConfig():Promise<config.Config>;
 
 export function GetFolders():Promise<Array<config.Folder>>;
 
+export function GetPeerFolders(arg1:string):Promise<Array<config.Folder>>;
+
 export function GetPeers():Promise<Array<discovery.Peer>>;
 
 export function GetSubscriptions():Promise<Array<config.Subscription>>;

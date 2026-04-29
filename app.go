@@ -486,6 +486,27 @@ func (a *App) UpdateBaseStorage(path string) error {
 	return nil
 }
 
+func (a *App) GetPeerFolders(peerHostname string) ([]config.Folder, error) {
+	a.mu.RLock()
+	p, ok := a.peers[peerHostname]
+	a.mu.RUnlock()
+	if !ok {
+		return nil, fmt.Errorf("peer %q not found", peerHostname)
+	}
+	resp, err := http.Get(fmt.Sprintf("http://%s:%d/peers", p.Addr, p.Port))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var pr struct {
+		Folders []config.Folder `json:"folders"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&pr); err != nil {
+		return nil, err
+	}
+	return pr.Folders, nil
+}
+
 func (a *App) OpenFolderDialog() (string, error) {
 	return wailsRuntime.OpenDirectoryDialog(a.ctx, wailsRuntime.OpenDialogOptions{
 		Title: "Select Folder",
