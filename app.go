@@ -117,8 +117,27 @@ func (a *App) startup(ctx context.Context) {
 			}
 			a.mu.Lock()
 			a.peers[p.Hostname] = p
+			// Upsert into KnownPeers so we can probe directly on next startup.
+			found := false
+			for i, kp := range a.cfg.KnownPeers {
+				if kp.Hostname == p.Hostname {
+					a.cfg.KnownPeers[i] = config.KnownPeer{
+						Hostname: p.Hostname, DisplayName: p.DisplayName,
+						Addr: p.Addr, Port: p.Port,
+					}
+					found = true
+					break
+				}
+			}
+			if !found {
+				a.cfg.KnownPeers = append(a.cfg.KnownPeers, config.KnownPeer{
+					Hostname: p.Hostname, DisplayName: p.DisplayName,
+					Addr: p.Addr, Port: p.Port,
+				})
+			}
 			a.mu.Unlock()
 			wailsRuntime.EventsEmit(ctx, "peer:online", p)
+			go a.saveConfig()
 			go a.catchUp(p)
 			go a.connectSSE(p)
 		},
@@ -129,6 +148,8 @@ func (a *App) startup(ctx context.Context) {
 			wailsRuntime.EventsEmit(ctx, "peer:offline", hostname)
 		},
 	)
+
+	go a.probeKnownPeers()
 
 }
 
@@ -341,10 +362,50 @@ func (a *App) saveConfig() {
 	cfg := a.cfg
 	cfg.Folders = append([]config.Folder(nil), a.cfg.Folders...)
 	cfg.Subscriptions = append([]config.Subscription(nil), a.cfg.Subscriptions...)
+	cfg.KnownPeers = append([]config.KnownPeer(nil), a.cfg.KnownPeers...)
 	path := a.cfgPath
 	a.mu.RUnlock()
 	if err := config.Save(cfg, path); err != nil {
 		log.Printf("save config: %v", err)
+	}
+}
+
+// probeKnownPeers directly contacts each saved peer on startup.
+// This gives near-instant reconnection without waiting for mDNS re-announcement.
+func (a *App) probeKnownPeers() {
+	a.mu.RLock()
+	known := make([]config.KnownPeer, len(a.cfg.KnownPeers))
+	copy(known, a.cfg.KnownPeers)
+	myID := a.cfg.DeviceID
+	a.mu.RUnlock()
+
+	for _, kp := range known {
+		if kp.Hostname == myID {
+			continue
+		}
+		go func(kp config.KnownPeer) {
+			client := &http.Client{Timeout: 2 * time.Second}
+			resp, err := client.Get(fmt.Sprintf("http://%s:%d/peers", kp.Addr, kp.Port))
+			if err != nil {
+				return
+			}
+			resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				return
+			}
+			p := discovery.Peer{
+				Hostname:    kp.Hostname,
+				DisplayName: kp.DisplayName,
+				Addr:        kp.Addr,
+				Port:        kp.Port,
+			}
+			a.mu.Lock()
+			a.peers[p.Hostname] = p
+			a.mu.Unlock()
+			wailsRuntime.EventsEmit(a.ctx, "peer:online", p)
+			go a.catchUp(p)
+			go a.connectSSE(p)
+		}(kp)
 	}
 }
 

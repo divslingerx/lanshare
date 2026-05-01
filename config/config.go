@@ -50,6 +50,13 @@ type ChangeEvent struct {
 	Changes  []Change `json:"changes"`
 }
 
+type KnownPeer struct {
+	Hostname    string `json:"hostname"`
+	DisplayName string `json:"display_name"`
+	Addr        string `json:"addr"`
+	Port        int    `json:"port"`
+}
+
 type Config struct {
 	DeviceID      string         `json:"device_id"`
 	DisplayName   string         `json:"display_name"`
@@ -57,6 +64,7 @@ type Config struct {
 	BaseStorage   string         `json:"base_storage"`
 	Folders       []Folder       `json:"folders"`
 	Subscriptions []Subscription `json:"subscriptions"`
+	KnownPeers    []KnownPeer    `json:"known_peers"`
 }
 
 func FolderID(absPath string) string {
@@ -74,6 +82,7 @@ func Default() Config {
 		BaseStorage:   filepath.Join(home, "filehub"),
 		Folders:       []Folder{},
 		Subscriptions: []Subscription{},
+		KnownPeers:    []KnownPeer{},
 	}
 }
 
