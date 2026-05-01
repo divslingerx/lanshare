@@ -1,6 +1,6 @@
 const pulseStyle = (color) => ({
   width: 7, height: 7, borderRadius: '50%',
-  background: color || 'var(--watch)',
+  background: color || 'var(--accent)',
   flexShrink: 0,
   animation: 'heartbeat 2.4s ease-in-out infinite',
 });
@@ -63,7 +63,7 @@ export default function Sidebar({ activeView, onNavChange, peers, config, folder
         )}
         {peers.map(p => (
           <div key={p.Hostname} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 10px', borderRadius: 'var(--r-sm)' }}>
-            <div style={pulseStyle('var(--watch)')} />
+            <div style={pulseStyle('var(--accent)')} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12.5, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.DisplayName || p.Hostname}</div>
               <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: 'var(--text-3)' }}>{p.Addr}</div>
@@ -73,7 +73,7 @@ export default function Sidebar({ activeView, onNavChange, peers, config, folder
       </div>
 
       <div style={{ padding: '12px 18px', borderTop: '1px solid var(--border-2)', display: 'flex', alignItems: 'center', gap: 9 }}>
-        <div style={pulseStyle('var(--watch)')} />
+        <div style={pulseStyle('var(--accent)')} />
         <div>
           <div style={{ fontSize: 11.5, fontWeight: 600 }}>{config.display_name || config.device_id}</div>
           <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: 'var(--text-3)' }}>:{config.port}</div>

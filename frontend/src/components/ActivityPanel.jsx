@@ -18,7 +18,7 @@ export default function ActivityPanel({ transfers }) {
             {active.map(t => (
               <div key={t.id} style={{ background: 'var(--surface-2)', border: '1px solid var(--border-2)', borderRadius: 'var(--r-sm)', padding: '11px 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9, marginBottom: 9 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: t.direction === 'download' ? 'var(--watch-bg)' : 'var(--shared-bg)', color: t.direction === 'download' ? 'var(--watch)' : 'var(--shared)' }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'var(--accent-bg)', color: 'var(--accent)' }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                       {t.direction === 'download'
                         ? <><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.29"/></>
@@ -31,7 +31,7 @@ export default function ActivityPanel({ transfers }) {
                   </div>
                 </div>
                 <div style={{ height: 3, background: 'var(--surface-3)', borderRadius: 2, overflow: 'hidden', marginBottom: 6 }}>
-                  <div style={{ height: '100%', borderRadius: 2, background: t.direction === 'download' ? 'var(--watch)' : 'var(--shared)', width: `${t.pct || 0}%`, transition: 'width 0.3s' }} />
+                  <div style={{ height: '100%', borderRadius: 2, background: 'var(--accent)', width: `${t.pct || 0}%`, transition: 'width 0.3s' }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: 'var(--text-3)' }}>{t.speed || '—'}</span>
@@ -47,7 +47,7 @@ export default function ActivityPanel({ transfers }) {
             <div className="sec-label" style={{ padding: '6px 2px 0' }}>Completed</div>
             {completed.slice(0, 10).map(t => (
               <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 11px', background: 'var(--surface-2)', border: '1px solid var(--border-2)', borderRadius: 'var(--r-sm)' }}>
-                <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--watch-bg)', color: 'var(--watch)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--accent-bg)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -65,7 +65,7 @@ export default function ActivityPanel({ transfers }) {
       </div>
 
       <div style={{ padding: '10px 18px', borderTop: '1px solid var(--border-2)', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--watch)', animation: 'heartbeat 2.4s ease-in-out infinite' }} />
+        <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)', animation: 'heartbeat 2.4s ease-in-out infinite' }} />
         <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10.5, color: 'var(--text-3)' }}>Listening</span>
       </div>
     </aside>
