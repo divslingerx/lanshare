@@ -1,5 +1,23 @@
 export namespace config {
 	
+	export class KnownPeer {
+	    hostname: string;
+	    display_name: string;
+	    addr: string;
+	    port: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new KnownPeer(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.hostname = source["hostname"];
+	        this.display_name = source["display_name"];
+	        this.addr = source["addr"];
+	        this.port = source["port"];
+	    }
+	}
 	export class Subscription {
 	    peer_hostname: string;
 	    remote_folder: string;
@@ -23,7 +41,7 @@ export namespace config {
 	export class Folder {
 	    id: string;
 	    path: string;
-	    mode: string;
+	    disabled?: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new Folder(source);
@@ -33,7 +51,7 @@ export namespace config {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
 	        this.path = source["path"];
-	        this.mode = source["mode"];
+	        this.disabled = source["disabled"];
 	    }
 	}
 	export class Config {
@@ -43,6 +61,7 @@ export namespace config {
 	    base_storage: string;
 	    folders: Folder[];
 	    subscriptions: Subscription[];
+	    known_peers: KnownPeer[];
 	
 	    static createFrom(source: any = {}) {
 	        return new Config(source);
@@ -56,6 +75,7 @@ export namespace config {
 	        this.base_storage = source["base_storage"];
 	        this.folders = this.convertValues(source["folders"], Folder);
 	        this.subscriptions = this.convertValues(source["subscriptions"], Subscription);
+	        this.known_peers = this.convertValues(source["known_peers"], KnownPeer);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -76,6 +96,7 @@ export namespace config {
 		    return a;
 		}
 	}
+	
 	
 
 }
