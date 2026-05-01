@@ -50,7 +50,7 @@ func TestFileEndpoint(t *testing.T) {
 	os.WriteFile(filepath.Join(dir, "hello.txt"), content, 0o644)
 
 	fid := config.FolderID(dir)
-	s.AddFolder(config.Folder{ID: fid, Path: dir, Mode: config.ModeShared})
+	s.AddFolder(config.Folder{ID: fid, Path: dir})
 
 	req := httptest.NewRequest("GET", "/files/"+fid+"/hello.txt", nil)
 	w := httptest.NewRecorder()
@@ -69,7 +69,7 @@ func TestSinceEndpoint(t *testing.T) {
 	s := newTestServer(t)
 	dir := t.TempDir()
 	fid := config.FolderID(dir)
-	s.AddFolder(config.Folder{ID: fid, Path: dir, Mode: config.ModeWatch})
+	s.AddFolder(config.Folder{ID: fid, Path: dir})
 
 	// Simulate a file that changed recently
 	s.SetFileState(fid, map[string]config.Change{
@@ -92,55 +92,37 @@ func TestSinceEndpoint(t *testing.T) {
 }
 
 func TestBrowseEndpoint(t *testing.T) {
-	t.Run("shared folder returns 200 with entries", func(t *testing.T) {
-		s := newTestServer(t)
-		dir := t.TempDir()
-		os.WriteFile(filepath.Join(dir, "data.txt"), []byte("content"), 0o644)
+	s := newTestServer(t)
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "data.txt"), []byte("content"), 0o644)
 
-		fid := config.FolderID(dir)
-		s.AddFolder(config.Folder{ID: fid, Path: dir, Mode: config.ModeShared})
+	fid := config.FolderID(dir)
+	s.AddFolder(config.Folder{ID: fid, Path: dir})
 
-		req := httptest.NewRequest("GET", "/browse/"+fid+"/", nil)
-		w := httptest.NewRecorder()
-		s.ServeHTTP(w, req)
+	req := httptest.NewRequest("GET", "/browse/"+fid+"/", nil)
+	w := httptest.NewRecorder()
+	s.ServeHTTP(w, req)
 
-		if w.Code != http.StatusOK {
-			t.Fatalf("want 200, got %d: %s", w.Code, w.Body)
-		}
-		var resp server.BrowseResponse
-		if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
-			t.Fatal(err)
-		}
-		if len(resp.Entries) != 1 {
-			t.Fatalf("want 1 entry, got %d", len(resp.Entries))
-		}
-		if resp.Entries[0].Name != "data.txt" {
-			t.Fatalf("want entry name data.txt, got %s", resp.Entries[0].Name)
-		}
-	})
-
-	t.Run("watch folder returns 403", func(t *testing.T) {
-		s := newTestServer(t)
-		dir := t.TempDir()
-
-		fid := config.FolderID(dir)
-		s.AddFolder(config.Folder{ID: fid, Path: dir, Mode: config.ModeWatch})
-
-		req := httptest.NewRequest("GET", "/browse/"+fid+"/", nil)
-		w := httptest.NewRecorder()
-		s.ServeHTTP(w, req)
-
-		if w.Code != http.StatusForbidden {
-			t.Fatalf("want 403, got %d", w.Code)
-		}
-	})
+	if w.Code != http.StatusOK {
+		t.Fatalf("want 200, got %d: %s", w.Code, w.Body)
+	}
+	var resp server.BrowseResponse
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatal(err)
+	}
+	if len(resp.Entries) != 1 {
+		t.Fatalf("want 1 entry, got %d", len(resp.Entries))
+	}
+	if resp.Entries[0].Name != "data.txt" {
+		t.Fatalf("want entry name data.txt, got %s", resp.Entries[0].Name)
+	}
 }
 
 func TestEventsEndpoint(t *testing.T) {
 	s := newTestServer(t)
 	dir := t.TempDir()
 	fid := config.FolderID(dir)
-	s.AddFolder(config.Folder{ID: fid, Path: dir, Mode: config.ModeWatch})
+	s.AddFolder(config.Folder{ID: fid, Path: dir})
 
 	pr, pw := io.Pipe()
 	w := &pipeResponseWriter{pw: pw, header: make(http.Header), code: http.StatusOK}

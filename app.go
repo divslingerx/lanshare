@@ -64,7 +64,9 @@ func (a *App) startup(ctx context.Context) {
 
 	a.srv = server.New(cfg)
 	for _, f := range cfg.Folders {
-		a.srv.AddFolder(f)
+		if !f.Disabled {
+			a.srv.AddFolder(f)
+		}
 	}
 
 	a.wtch, err = watcher.New(a.onFolderChange)
@@ -74,7 +76,7 @@ func (a *App) startup(ctx context.Context) {
 
 	configDir, _ := os.UserConfigDir()
 	for _, f := range cfg.Folders {
-		if f.Mode != config.ModeWatch {
+		if f.Disabled {
 			continue
 		}
 		m, _ := manifest.Load(manifest.ManifestPath(configDir, f.ID))
@@ -84,12 +86,12 @@ func (a *App) startup(ctx context.Context) {
 		a.manifests[f.ID] = m
 	}
 
-	// Walk all watch folders to pick up offline changes before starting the live watcher.
+	// Walk all shared folders to pick up offline changes before starting the live watcher.
 	a.startupScan()
 
 	// Now start watching using the fresh manifests produced by startupScan.
 	for _, f := range cfg.Folders {
-		if f.Mode != config.ModeWatch {
+		if f.Disabled {
 			continue
 		}
 		a.mu.RLock()
@@ -315,7 +317,7 @@ func (a *App) startupScan() {
 	a.mu.RUnlock()
 
 	for _, f := range folders {
-		if f.Mode != config.ModeWatch {
+		if f.Disabled {
 			continue
 		}
 		m, _ := manifest.Walk(f.ID, f.Path)
@@ -423,13 +425,13 @@ func (a *App) GetFolders() []config.Folder {
 	return a.cfg.Folders
 }
 
-func (a *App) AddFolder(path string, mode string) error {
+func (a *App) AddFolder(path string) error {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
 		return err
 	}
 	id := config.FolderID(absPath)
-	f := config.Folder{ID: id, Path: absPath, Mode: config.FolderMode(mode)}
+	f := config.Folder{ID: id, Path: absPath}
 
 	a.mu.Lock()
 	for _, existing := range a.cfg.Folders {
@@ -442,29 +444,27 @@ func (a *App) AddFolder(path string, mode string) error {
 	a.mu.Unlock()
 
 	a.srv.AddFolder(f)
-	if f.Mode == config.ModeWatch {
-		m, err := manifest.Walk(id, absPath)
-		if err != nil || m == nil {
-			m = manifest.New(id)
-		} else {
-			state := make(map[string]config.Change, len(m.Files))
-			for rel, entry := range m.Files {
-				state[rel] = config.Change{
-					Path:  rel,
-					Op:    config.OpWrite,
-					MTime: entry.MTime,
-					Size:  entry.Size,
-				}
+	m, err := manifest.Walk(id, absPath)
+	if err != nil || m == nil {
+		m = manifest.New(id)
+	} else {
+		state := make(map[string]config.Change, len(m.Files))
+		for rel, entry := range m.Files {
+			state[rel] = config.Change{
+				Path:  rel,
+				Op:    config.OpWrite,
+				MTime: entry.MTime,
+				Size:  entry.Size,
 			}
-			a.srv.SetFileState(id, state)
-			configDir, _ := os.UserConfigDir()
-			m.Save(manifest.ManifestPath(configDir, id))
 		}
-		a.mu.Lock()
-		a.manifests[id] = m
-		a.mu.Unlock()
-		a.wtch.Watch(id, absPath, m)
+		a.srv.SetFileState(id, state)
+		configDir, _ := os.UserConfigDir()
+		m.Save(manifest.ManifestPath(configDir, id))
 	}
+	a.mu.Lock()
+	a.manifests[id] = m
+	a.mu.Unlock()
+	a.wtch.Watch(id, absPath, m)
 	a.saveConfig()
 	return nil
 }
@@ -487,15 +487,45 @@ func (a *App) RemoveFolder(folderID string) error {
 	return nil
 }
 
-func (a *App) SetFolderMode(folderID string, mode string) error {
+func (a *App) SetFolderSharing(folderID string, enabled bool) error {
 	a.mu.Lock()
+	var found config.Folder
 	for i, f := range a.cfg.Folders {
 		if f.ID == folderID {
-			a.cfg.Folders[i].Mode = config.FolderMode(mode)
+			a.cfg.Folders[i].Disabled = !enabled
+			found = a.cfg.Folders[i]
 			break
 		}
 	}
 	a.mu.Unlock()
+
+	if found.ID == "" {
+		return fmt.Errorf("folder %q not found", folderID)
+	}
+
+	if enabled {
+		a.srv.AddFolder(found)
+		m, err := manifest.Walk(found.ID, found.Path)
+		if err != nil || m == nil {
+			m = manifest.New(found.ID)
+		} else {
+			state := make(map[string]config.Change, len(m.Files))
+			for rel, entry := range m.Files {
+				state[rel] = config.Change{Path: rel, Op: config.OpWrite, MTime: entry.MTime, Size: entry.Size}
+			}
+			a.srv.SetFileState(found.ID, state)
+			configDir, _ := os.UserConfigDir()
+			m.Save(manifest.ManifestPath(configDir, found.ID))
+		}
+		a.mu.Lock()
+		a.manifests[found.ID] = m
+		a.mu.Unlock()
+		a.wtch.Watch(found.ID, found.Path, m)
+	} else {
+		a.srv.RemoveFolder(found.ID)
+		a.wtch.Unwatch(found.ID)
+	}
+
 	a.saveConfig()
 	return nil
 }

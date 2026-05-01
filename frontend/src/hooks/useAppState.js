@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  GetFolders, AddFolder, RemoveFolder, SetFolderMode,
+  GetFolders, AddFolder, RemoveFolder, SetFolderSharing,
   GetPeers, GetPeerFolders, GetSubscriptions, Subscribe, Unsubscribe,
   GetConfig, UpdateDisplayName, UpdatePort, UpdateBaseStorage,
   OpenFolderDialog,
@@ -56,8 +56,8 @@ export function useAppState() {
     return () => { offOnline(); offOffline(); offChanged(); offProgress(); offDone(); };
   }, []);
 
-  const addFolder = useCallback(async (path, mode) => {
-    await AddFolder(path, mode);
+  const addFolder = useCallback(async (path) => {
+    await AddFolder(path);
     setFolders(await GetFolders());
   }, []);
 
@@ -66,8 +66,8 @@ export function useAppState() {
     setFolders(await GetFolders());
   }, []);
 
-  const setFolderMode = useCallback(async (id, mode) => {
-    await SetFolderMode(id, mode);
+  const setFolderSharing = useCallback(async (id, enabled) => {
+    await SetFolderSharing(id, enabled);
     setFolders(await GetFolders());
   }, []);
 
@@ -98,7 +98,7 @@ export function useAppState() {
 
   return {
     folders, peers, subscriptions, config, transfers,
-    addFolder, removeFolder, setFolderMode,
+    addFolder, removeFolder, setFolderSharing,
     subscribe, unsubscribe, updateConfig, openFolderDialog,
     refreshPeers,
   };

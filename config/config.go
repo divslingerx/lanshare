@@ -10,17 +10,10 @@ import (
 	"github.com/cespare/xxhash/v2"
 )
 
-type FolderMode string
-
-const (
-	ModeWatch  FolderMode = "watch"
-	ModeShared FolderMode = "shared"
-)
-
 type Folder struct {
-	ID   string     `json:"id"`
-	Path string     `json:"path"`
-	Mode FolderMode `json:"mode"`
+	ID       string `json:"id"`
+	Path     string `json:"path"`
+	Disabled bool   `json:"disabled,omitempty"`
 }
 
 type Subscription struct {

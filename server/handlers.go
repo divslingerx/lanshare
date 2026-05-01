@@ -42,10 +42,6 @@ func (s *Server) handleBrowse(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	if folder.Mode != config.ModeShared {
-		http.Error(w, "browse only available for shared folders", http.StatusForbidden)
-		return
-	}
 
 	entries, err := os.ReadDir(folder.Path)
 	if err != nil {
@@ -107,15 +103,11 @@ func (s *Server) handleSince(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.mu.RLock()
-	folder, ok := s.folders[folderID]
+	_, ok := s.folders[folderID]
 	state := s.fileState[folderID]
 	s.mu.RUnlock()
 	if !ok {
 		http.NotFound(w, r)
-		return
-	}
-	if folder.Mode != config.ModeWatch {
-		http.Error(w, "since only available for watch folders", http.StatusForbidden)
 		return
 	}
 

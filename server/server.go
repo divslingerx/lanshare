@@ -88,9 +88,7 @@ func (s *Server) AddFolder(f config.Folder) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.folders[f.ID] = f
-	if f.Mode == config.ModeWatch {
-		s.hubs[f.ID] = NewHub()
-	}
+	s.hubs[f.ID] = NewHub()
 }
 
 func (s *Server) RemoveFolder(folderID string) {

@@ -33,7 +33,7 @@ export default function App() {
             folders={state.folders}
             onAddFolder={state.addFolder}
             onRemoveFolder={state.removeFolder}
-            onSetMode={state.setFolderMode}
+            onToggleSharing={state.setFolderSharing}
           />
         )}
         {view === 'network' && (

@@ -3,7 +3,7 @@
 import {config} from '../models';
 import {discovery} from '../models';
 
-export function AddFolder(arg1:string,arg2:string):Promise<void>;
+export function AddFolder(arg1:string):Promise<void>;
 
 export function GetConfig():Promise<config.Config>;
 
@@ -19,7 +19,7 @@ export function OpenFolderDialog():Promise<string>;
 
 export function RemoveFolder(arg1:string):Promise<void>;
 
-export function SetFolderMode(arg1:string,arg2:string):Promise<void>;
+export function SetFolderSharing(arg1:string,arg2:boolean):Promise<void>;
 
 export function Subscribe(arg1:string,arg2:string,arg3:string,arg4:string):Promise<void>;
 

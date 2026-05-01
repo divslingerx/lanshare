@@ -2,11 +2,10 @@ import { useState } from 'react';
 import FolderCard from './FolderCard';
 import AddFolderModal from './AddFolderModal';
 
-export default function FolderList({ folders, onAddFolder, onRemoveFolder, onSetMode }) {
+export default function FolderList({ folders, onAddFolder, onRemoveFolder, onToggleSharing }) {
   const [showModal, setShowModal] = useState(false);
 
-  const watching = folders.filter(f => f.mode === 'watch').length;
-  const shared   = folders.filter(f => f.mode === 'shared').length;
+  const sharing = folders.filter(f => !f.disabled).length;
 
   return (
     <>
@@ -14,7 +13,7 @@ export default function FolderList({ folders, onAddFolder, onRemoveFolder, onSet
         <div>
           <div style={{ fontFamily: 'Syne, sans-serif', fontSize: 17, fontWeight: 700, letterSpacing: '-0.4px' }}>My Folders</div>
           <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10.5, color: 'var(--text-3)', marginTop: 2 }}>
-            {folders.length} folder{folders.length !== 1 ? 's' : ''} · {watching} watching · {shared} shared
+            {folders.length} folder{folders.length !== 1 ? 's' : ''} · {sharing} sharing
           </div>
         </div>
         <div style={{ flex: 1 }} />
@@ -37,7 +36,7 @@ export default function FolderList({ folders, onAddFolder, onRemoveFolder, onSet
           </div>
         )}
         {folders.map(f => (
-          <FolderCard key={f.id} folder={f} onRemove={onRemoveFolder} onSetMode={onSetMode} />
+          <FolderCard key={f.id} folder={f} onRemove={onRemoveFolder} onToggleSharing={onToggleSharing} />
         ))}
       </div>
 

@@ -2,25 +2,24 @@ function basename(p) {
   return p.replace(/\\/g, '/').split('/').filter(Boolean).pop() || p;
 }
 
-export default function FolderCard({ folder, onRemove, onSetMode }) {
-  const isShared = folder.mode === 'shared';
-  const modeColor = isShared ? 'var(--shared)' : 'var(--watch)';
-  const modeBg    = isShared ? 'var(--shared-bg)' : 'var(--watch-bg)';
+export default function FolderCard({ folder, onRemove, onToggleSharing }) {
+  const sharing = !folder.disabled;
 
   return (
     <div style={{
       display: 'flex', alignItems: 'stretch',
       background: 'var(--surface)', border: '1px solid var(--border)',
       borderRadius: 'var(--r)', overflow: 'hidden',
-      transition: 'border-color 0.18s, box-shadow 0.18s',
+      opacity: sharing ? 1 : 0.6,
+      transition: 'opacity 0.2s, border-color 0.18s',
       animation: 'slideIn 0.18s ease-out',
     }}>
       <style>{`@keyframes slideIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }`}</style>
-      <div style={{ width: 3, flexShrink: 0, background: modeColor, transition: 'background 0.3s' }} />
+      <div style={{ width: 3, flexShrink: 0, background: sharing ? 'var(--accent)' : 'var(--border-2)', transition: 'background 0.2s' }} />
 
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 14, padding: '13px 16px', minWidth: 0 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 8, background: modeBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={modeColor} strokeWidth="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+        <div style={{ width: 36, height: 36, borderRadius: 8, background: sharing ? 'rgba(50,208,122,0.12)' : 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.2s' }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={sharing ? 'var(--accent)' : 'var(--text-3)'} strokeWidth="2" style={{ transition: 'stroke 0.2s' }}><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -33,23 +32,29 @@ export default function FolderCard({ folder, onRemove, onSetMode }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', paddingRight: 12, gap: 6 }}>
-        <div style={{ display: 'flex', background: 'var(--surface-2)', border: '1px solid var(--border-2)', borderRadius: 20, padding: 3, gap: 2 }}>
-          {['watch', 'shared'].map(m => (
-            <button
-              key={m}
-              onClick={() => onSetMode(folder.id, m)}
-              style={{
-                padding: '4px 11px', borderRadius: 18, fontSize: 11.5, fontWeight: 500,
-                cursor: 'pointer', border: folder.mode === m ? `1px solid ${m === 'watch' ? 'rgba(50,208,122,0.18)' : 'rgba(245,166,35,0.18)'}` : 'none',
-                background: folder.mode === m ? (m === 'watch' ? 'var(--watch-bg)' : 'var(--shared-bg)') : 'transparent',
-                color: folder.mode === m ? (m === 'watch' ? 'var(--watch)' : 'var(--shared)') : 'var(--text-3)',
-                fontFamily: 'DM Sans, sans-serif', transition: 'all 0.18s', whiteSpace: 'nowrap',
-              }}
-            >
-              {m.charAt(0).toUpperCase() + m.slice(1)}
-            </button>
-          ))}
+      <div style={{ display: 'flex', alignItems: 'center', paddingRight: 12, gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <span style={{ fontSize: 11, color: sharing ? 'var(--accent)' : 'var(--text-3)', fontWeight: 500, transition: 'color 0.2s' }}>
+            {sharing ? 'Sharing' : 'Paused'}
+          </span>
+          <button
+            onClick={() => onToggleSharing(folder.id, !sharing)}
+            title={sharing ? 'Pause sharing' : 'Resume sharing'}
+            style={{
+              width: 38, height: 22, borderRadius: 11, padding: 0,
+              background: sharing ? 'var(--accent)' : 'var(--surface-2)',
+              border: `1.5px solid ${sharing ? 'var(--accent)' : 'var(--border-2)'}`,
+              cursor: 'pointer', position: 'relative', transition: 'all 0.2s', flexShrink: 0,
+            }}
+          >
+            <span style={{
+              position: 'absolute', top: 2,
+              left: sharing ? 18 : 2,
+              width: 14, height: 14, borderRadius: '50%',
+              background: sharing ? '#fff' : 'var(--text-3)',
+              transition: 'left 0.2s, background 0.2s',
+            }} />
+          </button>
         </div>
 
         <button
