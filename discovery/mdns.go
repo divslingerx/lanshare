@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/grandcat/zeroconf"
 )
@@ -48,13 +49,29 @@ type Browser struct {
 func NewBrowser(onFound func(Peer), onLost func(hostname string)) *Browser {
 	ctx, cancel := context.WithCancel(context.Background())
 	b := &Browser{cancel: cancel}
-	go b.run(ctx, onFound, onLost)
+	go b.run(ctx, onFound)
 	return b
 }
 
 func (b *Browser) Stop() { b.cancel() }
 
-func (b *Browser) run(ctx context.Context, onFound func(Peer), onLost func(string)) {
+// run repeatedly issues fresh mDNS queries so discovery happens within seconds
+// rather than waiting for peers to re-announce on their own schedule.
+func (b *Browser) run(ctx context.Context, onFound func(Peer)) {
+	for {
+		browseCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		b.browseOnce(browseCtx, onFound)
+		cancel()
+
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(2 * time.Second):
+		}
+	}
+}
+
+func (b *Browser) browseOnce(ctx context.Context, onFound func(Peer)) {
 	resolver, err := zeroconf.NewResolver(nil)
 	if err != nil {
 		log.Printf("mdns: resolver error: %v", err)
@@ -62,11 +79,10 @@ func (b *Browser) run(ctx context.Context, onFound func(Peer), onLost func(strin
 	}
 	entries := make(chan *zeroconf.ServiceEntry)
 	go func() {
-		if err := resolver.Browse(ctx, serviceType, domain, entries); err != nil {
+		if err := resolver.Browse(ctx, serviceType, domain, entries); err != nil && ctx.Err() == nil {
 			log.Printf("mdns: browse error: %v", err)
 		}
 	}()
-
 	for {
 		select {
 		case entry, ok := <-entries:
@@ -77,10 +93,9 @@ func (b *Browser) run(ctx context.Context, onFound func(Peer), onLost func(strin
 				continue
 			}
 			p := entryToPeer(entry)
-			if p.Addr == "" {
-				continue
+			if p.Addr != "" {
+				onFound(p)
 			}
-			onFound(p)
 		case <-ctx.Done():
 			return
 		}
